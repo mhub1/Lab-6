@@ -61,6 +61,7 @@ public class MainApp extends Application {
 	public void init() throws Exception {
 		// INIT is executed by the Application framework FIRST
 		//connection.startConnection();
+		
 	}
 
 	@Override
