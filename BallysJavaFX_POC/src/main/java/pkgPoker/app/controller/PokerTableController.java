@@ -33,6 +33,7 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.shape.Circle;
+import javafx.scene.shape.CubicCurve;
 import javafx.scene.shape.CubicCurveTo;
 import javafx.scene.shape.MoveTo;
 import javafx.scene.shape.Path;
@@ -255,13 +256,48 @@ public class PokerTableController implements Initializable {
 
 			TranslateTransition transT = CreateTranslateTransition(pntDeck, pntCardDealt, img);
 
-			RotateTransition rotT = CreateRotateTransition(img);
+			//Changes(did not use rotate but left it in)
+			RotateTransition rotT = CreateRotateTransition(img);		
 			ScaleTransition scaleT = CreateScaleTransition(img);
-			PathTransition pathT = CreatePathTransition(pntDeck,
-			 pntCardDealt, img);
-
-			ParallelTransition patTMoveRot = new ParallelTransition();
-			patTMoveRot.getChildren().addAll(rotT, pathT);
+			scaleT.setCycleCount(2);
+			FadeTransition fadeT = new FadeTransition(Duration.millis(375),img);
+			fadeT.setDelay(Duration.millis(375));
+			fadeT.setFromValue(.9);
+			fadeT.setToValue(0);
+			PathTransition pathT = CreatePathTransition(pntDeck,pntCardDealt, img);
+			//cubic curve is a 2 point line segment influenced by
+			//control points (x1,y1), (x2,y2) creating a curve
+			//could maybe use quadratic curves
+			CubicCurve cubic = new CubicCurve();
+			pathT.setPath(cubic);
+			//specifies different players(only works for 1 player without)
+			if(iPosition==1){
+				//Bottom Player
+				cubic.setStartX(pntDeck.getX()+10);
+				cubic.setStartY(pntDeck.getY());
+				cubic.setControlX1(pntDeck.getX()*2.5);
+				cubic.setControlY1(pntDeck.getY()+20);
+				cubic.setControlX2(pntCardDealt.getX()+10);
+				cubic.setControlY2(pntCardDealt.getY()-50);
+				cubic.setEndX(pntCardDealt.getX()+20);
+				cubic.setEndY(pntCardDealt.getY());
+			}
+			else{
+				//Top Player
+				cubic.setStartX(pntDeck.getX()+10);
+				cubic.setStartY(pntDeck.getY());
+				cubic.setControlX1(pntDeck.getX()*2.5);
+				//different y value
+				cubic.setControlY1(pntDeck.getY()-20);
+				cubic.setControlX2(pntCardDealt.getX()+10);
+				//different y value
+				cubic.setControlY2(pntCardDealt.getY()+50);
+				cubic.setEndX(pntCardDealt.getX()+20);
+				cubic.setEndY(pntCardDealt.getY());
+			}
+						
+			ParallelTransition patTMoveRot = new ParallelTransition(scaleT,fadeT,pathT);
+			//patTMoveRot.getChildren().addAll(rotT, pathT);
 			// patTMoveRot.getChildren().addAll(pathT, rotT);
 
 			ParallelTransition patTFadeInFadeOut = createFadeTransition(
@@ -302,7 +338,7 @@ public class PokerTableController implements Initializable {
 		path.getElements().add(new MoveTo(fromPoint.getX(), fromPoint.getY()));
 		path.getElements().add(new CubicCurveTo(toPoint.getX() * 2, toPoint.getY() * 2, toPoint.getX() / 3,
 				toPoint.getY() / 3, toPoint.getX(), toPoint.getY()));
-		// path.getElements().add(new CubicCurveTo(0, 120, 0, 240, 380, 240));
+		// path.getElements().add(new CubicCurveTo(0, 120, 0, 240, 380, 240)); *doesn't work
 		PathTransition pathTransition = new PathTransition();
 		pathTransition.setDuration(Duration.millis(750));
 		pathTransition.setPath(path);
